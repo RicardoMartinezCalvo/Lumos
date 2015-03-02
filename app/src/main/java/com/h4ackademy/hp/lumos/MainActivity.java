@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.hardware.Camera.Parameters;
 import android.view.View;
+import android.widget.Button;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -18,21 +19,33 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+       Button torch = (Button) findViewById(R.id.linterna);
+        torch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (cam == null) {
+                    turn_On_flash();
+                } else {
+                    turn_Off_flash();
+                }
+            }
+        });
 
 
     }
 
-    public void turn_On_flash(View view){
-        cam = Camera.open();
-        p = cam.getParameters();
-        p.setFlashMode(Parameters.FLASH_MODE_TORCH);
-        cam.setParameters(p);
-        cam.startPreview();
+    public void turn_On_flash(){
+            cam = Camera.open();
+            p = cam.getParameters();
+            p.setFlashMode(Parameters.FLASH_MODE_TORCH);
+            cam.setParameters(p);
+            cam.startPreview();
     }
 
-    public void turn_Off_flash(View view){
+    public void turn_Off_flash(){
         cam.stopPreview();
         cam.release();
+        cam = null;
     }
 
 

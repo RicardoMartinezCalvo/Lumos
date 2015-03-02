@@ -9,19 +9,10 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Linterna On"
-        android:id="@+id/linterna_on"
+        android:text="Linterna"
+        android:id="@+id/linterna"
         android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:onClick="turn_On_flash"/>
+        android:layout_centerHorizontal="true"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Linterna Off"
-        android:id="@+id/linterna_off"
-        android:layout_below="@+id/linterna_on"
-        android:layout_alignLeft="@+id/linterna_on"
-        android:layout_alignStart="@+id/linterna_on"
-        android:onClick="turn_Off_flash"/>
+
 </RelativeLayout>
