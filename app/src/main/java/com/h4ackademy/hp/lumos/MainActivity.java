@@ -1,53 +1,117 @@
 package com.h4ackademy.hp.lumos;
 
+import android.content.Intent;
 import android.hardware.Camera;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.speech.RecognizerIntent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.FloatMath;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.hardware.Camera.Parameters;
-import android.view.View;
-import android.widget.Button;
+import android.speech.SpeechRecognizer;
 
 
-public class MainActivity extends ActionBarActivity {
+
+public class MainActivity extends ActionBarActivity implements SensorEventListener {
 
     private Camera cam;
-    private Parameters p;
+    private SpeechRecognizer speech;
+    private Intent record;
+    private SensorManager sensorMan;
+    private Sensor accelerometer;
+
+    private float[] mGravity;
+    private float mAccel;
+    private float mAccelCurrent;
+    private float mAccelLast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-       Button torch = (Button) findViewById(R.id.linterna);
-        torch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (cam == null) {
-                    turn_On_flash();
-                } else {
-                    turn_Off_flash();
-                }
-            }
-        });
+        //Displays the acction bar
+        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+        actionBar.hide();
+        
+        speech = SpeechRecognizer.createSpeechRecognizer(getApplicationContext());
+        speech.setRecognitionListener(new Listener());
+        record = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
+        sensorMan = (SensorManager)getSystemService(SENSOR_SERVICE);
+        accelerometer = sensorMan.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mAccel = 0.00f;
+        mAccelCurrent = SensorManager.GRAVITY_EARTH;
+        mAccelLast = SensorManager.GRAVITY_EARTH;
 
+    }
+
+    public void startRecord(){
+        speech.startListening(record);
     }
 
     public void turn_On_flash(){
+        if(cam == null) {
             cam = Camera.open();
-            p = cam.getParameters();
+            Parameters p = cam.getParameters();
             p.setFlashMode(Parameters.FLASH_MODE_TORCH);
             cam.setParameters(p);
             cam.startPreview();
+        }
     }
 
     public void turn_Off_flash(){
-        cam.stopPreview();
-        cam.release();
-        cam = null;
+        if(cam != null) {
+            cam.stopPreview();
+            cam.release();
+            cam = null;
+        }
     }
 
+    @Override
+    public void onSensorChanged (SensorEvent event)  {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
+            mGravity = event.values.clone();
+            // Shake detection
+            float x = mGravity[0];
+            float y = mGravity[1];
+            float z = mGravity[2];
+            mAccelLast = mAccelCurrent;
+            mAccelCurrent = FloatMath.sqrt(x * x + y * y + z * z);
+            float delta = mAccelCurrent - mAccelLast;
+            mAccel = mAccel * 0.9f + delta;
+            // Make this higher or lower according to how much
+            // motion you want to detect
+            if(mAccel > 4){
+                startRecord();
+            }
+        }
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // required method
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        sensorMan.registerListener(this, accelerometer,
+                SensorManager.SENSOR_DELAY_UI);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorMan.unregisterListener(this);
+        turn_Off_flash();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
