@@ -8,7 +8,12 @@ import android.util.Log;
 import java.util.ArrayList;
 
 public class Listener implements RecognitionListener {
-    MainActivity mainActivity = new MainActivity();
+    MainActivity mainActivity;
+
+    public Listener(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
+    }
+
     @Override
     public void onReadyForSpeech(Bundle params) {
     }
@@ -39,22 +44,39 @@ public class Listener implements RecognitionListener {
     @Override
     public void onResults(Bundle results) {
         ArrayList data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+        Log.i("opcion",String.valueOf(data.get(0)));
+        String action = actionText(String.valueOf(data.get(0)));
+        Log.i("Variable action", action);
+        switch (action) {
+            case "on":
+                mainActivity.turn_On_flash();
+                break;
+            case "off":
+                mainActivity.turn_Off_flash();
+                break;
+            default:
+                mainActivity.understandWord();
+                break;
+        }
 
-        if (String.valueOf(data.get(0)).equalsIgnoreCase("lunes") ||
-                String.valueOf(data.get(0)).equalsIgnoreCase("lomos")||
-                String.valueOf(data.get(0)).equalsIgnoreCase("lumos") ||
-                String.valueOf(data.get(0)).equalsIgnoreCase("lupus")) {
-            mainActivity.turn_On_flash();
-        }
-        if (String.valueOf(data.get(0)).equalsIgnoreCase("nox") ||
-                String.valueOf(data.get(0)).equalsIgnoreCase("maps")||
-                String.valueOf(data.get(0)).equalsIgnoreCase("no")) {
-            mainActivity.turn_Off_flash();
-        }
-        //Log.i("opcion",String.valueOf(data.get(0)));
     }
 
+    public String actionText (String data){
+        String[] wordsOn = {"lunes", "lomos", "lumos", "lupus", "plomos", "lujos", "lobos"};
+        String[] wordsOff = {"nox", "maps", "no", "nos"};
 
+        for(String word : wordsOn){
+            if(data.equalsIgnoreCase(word))
+                return "on";
+        }
+
+        for(String word : wordsOff){
+            if(data.equalsIgnoreCase(word))
+                return "off";
+        }
+
+        return "nothing";
+    }
 
     @Override
     public void onPartialResults(Bundle partialResults) {

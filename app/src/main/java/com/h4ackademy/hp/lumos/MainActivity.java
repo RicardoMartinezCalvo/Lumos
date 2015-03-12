@@ -15,12 +15,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.hardware.Camera.Parameters;
 import android.speech.SpeechRecognizer;
-
+import android.widget.Toast;
 
 
 public class MainActivity extends ActionBarActivity implements SensorEventListener {
 
     private Camera cam;
+    private boolean camState = false;
     private SpeechRecognizer speech;
     private Intent record;
     private SensorManager sensorMan;
@@ -38,10 +39,12 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         //Displays the acction bar
         android.support.v7.app.ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
-        
+
         speech = SpeechRecognizer.createSpeechRecognizer(getApplicationContext());
-        speech.setRecognitionListener(new Listener());
+        speech.setRecognitionListener(new Listener(this));
         record = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        record.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 0);
+        record.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 0);
 
         sensorMan = (SensorManager)getSystemService(SENSOR_SERVICE);
         accelerometer = sensorMan.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -56,21 +59,28 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
     }
 
     public void turn_On_flash(){
-        if(cam == null) {
+        if(!camState) {
             cam = Camera.open();
             Parameters p = cam.getParameters();
             p.setFlashMode(Parameters.FLASH_MODE_TORCH);
             cam.setParameters(p);
             cam.startPreview();
+            camState = true;
         }
     }
 
     public void turn_Off_flash(){
-        if(cam != null) {
+        if(camState) {
             cam.stopPreview();
             cam.release();
-            cam = null;
+            camState = false;
         }
+    }
+
+    public void understandWord(){
+        Toast toast = Toast.makeText
+                (this,"I can't understand the word", Toast.LENGTH_LONG);
+        toast.show();
     }
 
     @Override
